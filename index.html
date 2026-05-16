@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🙏 赛博上香 · 数字供佛</title>
+    <style>
+        :root {
+            --bg-deep: #0a0a0f;
+            --bg-panel: #111122;
+            --neon-gold: #ffd54f;
+            --neon-amber: #ffab40;
+            --neon-pink: #ff4081;
+            --neon-cyan: #00e5ff;
+            --neon-green: #76ff03;
+            --neon-red: #ff1744;
+            --neon-purple: #b388ff;
+            --text-primary: #e8e8f0;
+            --text-secondary: #b0b0c0;
+            --border-glow: #ffab40;
+            --incense-glow: #ff6d00;
+            --shadow-gold: 0 0 20px rgba(255, 171, 64, 0.6), 0 0 60px rgba(255, 171, 64, 0.3);
+            --shadow-cyan: 0 0 20px rgba(0, 229, 255, 0.5), 0 0 40px rgba(0, 229, 255, 0.2);
+            --shadow-pink: 0 0 20px rgba(255, 64, 129, 0.5), 0 0 40px rgba(255, 64, 129, 0.2);
+            --font-title: 'STSong', 'Songti SC', 'Noto Serif SC', 'KaiTi', 'STKaiti', serif;
+            --font-body: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image:
+                radial-gradient(ellipse at 50% 30%, rgba(255, 171, 64, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 70%, rgba(255, 64, 129, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 70%, rgba(0, 229, 255, 0.04) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0a14 0%, #0d0d1a 40%, #0a0a14 100%);
+            background-attachment: fixed;
+        }
+
+        /* 扫描线覆盖 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.015) 2px,
+                    rgba(0, 0, 0, 0.015) 4px);
+            opacity: 0.6;
+        }
+
+        /* 粒子背景 */
+        .particles-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(40px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* 主容器 */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* ===== 顶部标题 ===== */
+        .header {
+            text-align: center;
+            padding: 10px 0;
+            position: relative;
+        }
+        .header .title {
+            font-family: var(--font-title);
+            font-size: clamp(1.6rem, 4vw, 2.4rem);
+            font-weight: bold;
+            letter-spacing: 0.15em;
+            color: #fff;
+            text-shadow:
+                0 0 10px var(--neon-gold),
+                0 0 30px var(--neon-amber),
+                0 0 60px var(--neon-amber),
+                0 0 100px rgba(255, 171, 64, 0.5);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+            display: inline-block;
+        }
+        @keyframes titleGlow {
+            0% {
+                text-shadow: 0 0 10px var(--neon-gold), 0 0 30px var(--neon-amber), 0 0 60px var(--neon-amber);
+            }
+            100% {
+                text-shadow: 0 0 20px var(--neon-gold), 0 0 50px var(--neon-amber), 0 0 90px var(--neon-amber), 0 0 140px rgba(255, 171, 64, 0.6);
+            }
+        }
+        .header .subtitle {
+            display: block;
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px var(--neon-cyan);
+            margin-top: 2px;
+            font-family: var(--font-body);
+            text-transform: uppercase;
+        }
+        .header .decorative-line {
+            display: block;
+            width: 60%;
+            max-width: 400px;
+            height: 1px;
+            margin: 8px auto 0;
+            background: linear-gradient(90deg, transparent, var(--neon-amber), transparent);
+            box-shadow: 0 0 6px var(--neon-amber);
+        }
+
+        /* ===== 佛龛选择栏 ===== */
+        .buddha-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 8px 4px 12px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 171, 64, 0.3) transparent;
+        }
+        .buddha-selector::-webkit-scrollbar {
+            height: 4px;
+        }
+        .buddha-selector::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .buddha-selector::-webkit-scrollbar-thumb {
+            background: rgba(255, 171, 64, 0.3);
+            border-radius: 10px;
+        }
+        .buddha-card {
+            flex: 0 0 auto;
+            width: clamp(70px, 14vw, 100px);
+            aspect-ratio: 3/4;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background: rgba(20, 20, 40, 0.7);
+            transition: all var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            backdrop-filter: blur(10px);
+        }
+        .buddha-card:hover {
+            border-color: rgba(255, 171, 64, 0.5);
+            box-shadow: 0 0 25px rgba(255, 171, 64, 0.25);
+            transform: translateY(-4px);
+        }
+        .buddha-card:active {
+            transform: scale(0.94);
+            transition: all 0.1s ease;
+        }
+        .buddha-card.active {
+            border-color: var(--neon-amber) !important;
+            box-shadow: var(--shadow-gold) !important;
+            background: rgba(40, 30, 20, 0.8) !important;
+            animation: cardPulse 2s ease-in-out infinite;
+        }
+        @keyframes cardPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 171, 64, 0.5), 0 0 50px rgba(255, 171, 64, 0.25);
+            }
+            50% {
+                box-shadow: 0 0 35px rgba(255, 171, 64, 0.7), 0 0 80px rgba(255, 171, 64, 0.4);
+            }
+        }
+        .buddha-card .buddha-img-wrap {
+            width: 75%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            background: radial-gradient(circle, rgba(30, 25, 35, 0.9) 0%, rgba(15, 12, 20, 0.95) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .buddha-card .buddha-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .buddha-card .buddha-placeholder {
+            font-size: 2rem;
+            opacity: 0.8;
+            position: absolute;
+            pointer-events: none;
+        }
+        .buddha-card .buddha-name {
+            font-size: 0.7rem;
+            margin-top: 6px;
+            letter-spacing: 0.05em;
+            color: #ccc;
+            font-family: var(--font-title);
+            text-align: center;
+            line-height: 1.2;
+        }
+        .buddha-card.active .buddha-name {
+            color: #fff;
+            text-shadow: 0 0 6px var(--neon-amber);
+        }
+
+        /* ===== 主佛展示区 ===== */
+        .main-shrine {
+            position: relative;
+            background: rgba(18, 18, 35, 0.7);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            backdrop-filter: blur(15px);
+            box-shadow:
+                0 8px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            overflow: visible;
+            transition: all var(--transition-smooth);
+        }
+        .main-shrine.active-glow {
+            border-color: rgba(255, 171, 64, 0.3);
+            box-shadow:
+                0 8px 40px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(255, 171, 64, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .shrine-image-container {
+            width: clamp(150px, 35vw, 240px);
+            aspect-ratio: 3/4;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow:
+                0 0 30px rgba(255, 171, 64, 0.3),
+                0 0 80px rgba(255, 171, 64, 0.1);
+            background: radial-gradient(ellipse at center, rgba(30, 22, 18, 0.9) 0%, rgba(10, 8, 12, 0.95) 100%);
+            transition: all var(--transition-smooth);
+        }
+        .shrine-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+        .shrine-image-container .shrine-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            z-index: 0;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .shrine-label {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+            text-shadow: 0 0 8px var(--neon-amber);
+            text-align: center;
+        }
+
+        /* ===== 供桌区域 ===== */
+        .offering-altar {
+            width: 100%;
+            min-height: 100px;
+            background: rgba(10, 8, 16, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 14px 18px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            backdrop-filter: blur(8px);
+            transition: all var(--transition-smooth);
+        }
+        .altar-surface {
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            width: 90%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 171, 64, 0.4), rgba(255, 171, 64, 0.6), rgba(255, 171, 64, 0.4), transparent);
+            box-shadow: 0 -2px 15px rgba(255, 171, 64, 0.3);
+            border-radius: 50%;
+        }
+        /* 香炉 */
+        .incense-burner {
+            position: relative;
+            width: 50px;
+            height: 40px;
+            flex-shrink: 0;
+            z-index: 2;
+            cursor: default;
+        }
+        .incense-burner .burner-body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 44px;
+            height: 28px;
+            background: linear-gradient(180deg, #5a3a2a 0%, #3a2218 60%, #2a1508 100%);
+            border-radius: 10px 10px 16px 16px;
+            border: 1px solid rgba(255, 200, 100, 0.3);
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.6),
+                inset 0 2px 4px rgba(255, 200, 150, 0.1);
+        }
+        .incense-burner .burner-rim {
+            position: absolute;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 10px;
+            background: linear-gradient(180deg, #7a5040, #4a2818);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 200, 100, 0.4);
+            box-shadow: 0 0 8px rgba(255, 150, 50, 0.3);
+        }
+        /* 香柱 */
+        .incense-stick {
+            position: absolute;
+            bottom: 26px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 55px;
+            background: linear-gradient(180deg, #8B5E3C 0%, #C49A6C 30%, #6B3A2A 100%);
+            border-radius: 1px;
+            z-index: 3;
+            transform-origin: bottom center;
+            animation: incenseFlicker 3s ease-in-out infinite;
+        }
+        .incense-stick .ember {
+            position: absolute;
+            top: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ff6d00 0%, #ff3d00 40%, rgba(255, 60, 0, 0) 70%);
+            border-radius: 50%;
+            box-shadow:
+                0 0 8px #ff6d00,
+                0 0 20px #ff3d00,
+                0 0 35px rgba(255, 80, 0, 0.6);
+            animation: emberGlow 1.5s ease-in-out infinite alternate;
+            z-index: 4;
+        }
+        @keyframes emberGlow {
+            0% {
+                box-shadow: 0 0 6px #ff6d00, 0 0 16px #ff3d00, 0 0 28px rgba(255, 80, 0, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 12px #ff8f00, 0 0 28px #ff5000, 0 0 45px rgba(255, 100, 0, 0.7);
+            }
+        }
+        @keyframes incenseFlicker {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.85;
+            }
+        }
+        /* 烟雾粒子 */
+        .smoke-particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            animation: smokeRise linear forwards;
+            background: rgba(180, 180, 200, 0.6);
+        }
+        @keyframes smokeRise {
+            0% {
+                transform: translateY(0) translateX(0) scale(0.4);
+                opacity: 0.7;
+            }
+            20% {
+                opacity: 0.5;
+                transform: translateY(-30px) translateX(5px) scale(1);
+            }
+            50% {
+                opacity: 0.25;
+                transform: translateY(-80px) translateX(-8px) scale(2.5);
+            }
+            80% {
+                opacity: 0.06;
+                transform: translateY(-150px) translateX(15px) scale(4);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-220px) translateX(-20px) scale(6);
+            }
+        }
+        /* 供桌上的贡品 */
+        .altar-offering {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+            animation: offeringAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            -webkit-tap-highlight-color: transparent;
+        }
+        .altar-offering:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) brightness(1.2);
+        }
+        .altar-offering:active {
+            transform: scale(0.85);
+        }
+        @keyframes offeringAppear {
+            0% {
+                transform: translateY(20px) scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        .altar-empty-hint {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            z-index: 1;
+            pointer-events: none;
+            font-family: var(--font-title);
+        }
+
+        /* ===== 底部控制面板 ===== */
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 0;
+        }
+        .offering-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+        }
+        .offering-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(20, 20, 40, 0.7);
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            position: relative;
+            backdrop-filter: blur(8px);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .offering-btn:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--shadow-cyan);
+            transform: translateY(-3px);
+            background: rgba(30, 30, 55, 0.8);
+        }
+        .offering-btn:active {
+            transform: scale(0.9);
+            transition: all 0.08s ease;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.6);
+        }
+        .offering-btn .btn-label {
+            position: absolute;
+            bottom: -20px;
+            font-size: 0.6rem;
+            color: #aaa;
+            white-space: nowrap;
+            letter-spacing: 0.03em;
+        }
+        /* 上香按钮 */
+        .btn-incense {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 2px solid var(--neon-red);
+            background: rgba(40, 10, 10, 0.7);
+            cursor: pointer;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            box-shadow: 0 0 20px rgba(255, 23, 68, 0.3);
+            backdrop-filter: blur(8px);
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            animation: incenseBtnPulse 2s ease-in-out infinite;
+        }
+        @keyframes incenseBtnPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 23, 68, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(255, 23, 68, 0.6), 0 0 70px rgba(255, 80, 0, 0.3);
+            }
+        }
+        .btn-incense:hover {
+            border-color: #ff5252;
+            box-shadow: 0 0 45px rgba(255, 23, 68, 0.7), 0 0 80px rgba(255, 80, 0, 0.4);
+            transform: translateY(-4px);
+            background: rgba(50, 12, 12, 0.85);
+        }
+        .btn-incense:active {
+            transform: scale(0.88);
+            transition: all 0.08s ease;
+            box-shadow: 0 0 60px rgba(255, 23, 68, 0.9), 0 0 100px rgba(255, 80, 0, 0.6);
+        }
+        .btn-incense .btn-label {
+            position: absolute;
+            bottom: -22px;
+            font-size: 0.65rem;
+            color: #ffaaaa;
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 6px rgba(255, 100, 100, 0.5);
+        }
+        /* 重置按钮 */
+        .btn-reset {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(20, 20, 35, 0.6);
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            backdrop-filter: blur(6px);
+            color: #ccc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-reset:hover {
+            border-color: #fff;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+        .btn-reset:active {
+            transform: scale(0.9);
+        }
+
+        /* ===== 功德弹出 ===== */
+        .merit-popup {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+            font-family: var(--font-title);
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ffd54f;
+            text-shadow: 0 0 12px #ffab40, 0 0 30px #ff6d00;
+            animation: meritFloat 2s ease-out forwards;
+            white-space: nowrap;
+        }
+        @keyframes meritFloat {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 1;
+            }
+            30% {
+                transform: translateY(-40px) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-120px) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        /* ===== 响应式设计 ===== */
+        @media (max-width: 600px) {
+            .main-container {
+                padding: 10px;
+                gap: 10px;
+            }
+            .buddha-selector {
+                gap: 6px;
+                padding: 6px 2px 10px;
+            }
+            .buddha-card {
+                width: 60px;
+                border-radius: 12px;
+                border-width: 1.5px;
+            }
+            .buddha-card .buddha-name {
+                font-size: 0.6rem;
+            }
+            .buddha-card .buddha-img-wrap {
+                width: 70%;
+            }
+            .buddha-card .buddha-placeholder {
+                font-size: 1.4rem;
+            }
+            .main-shrine {
+                padding: 14px;
+                border-radius: 18px;
+                gap: 10px;
+            }
+            .shrine-image-container {
+                width: clamp(110px, 50vw, 180px);
+                border-radius: 14px;
+            }
+            .shrine-image-container .shrine-placeholder {
+                font-size: 3.5rem;
+            }
+            .shrine-label {
+                font-size: 0.9rem;
+            }
+            .offering-altar {
+                min-height: 70px;
+                padding: 10px 12px;
+                gap: 6px;
+                border-radius: 12px;
+            }
+            .altar-offering {
+                width: 30px;
+                height: 30px;
+                font-size: 1.3rem;
+            }
+            .incense-burner {
+                width: 38px;
+                height: 30px;
+            }
+            .incense-burner .burner-body {
+                width: 32px;
+                height: 20px;
+                border-radius: 7px 7px 12px 12px;
+            }
+            .incense-burner .burner-rim {
+                width: 38px;
+                height: 7px;
+                bottom: 16px;
+            }
+            .incense-stick {
+                height: 40px;
+                bottom: 20px;
+                width: 2px;
+            }
+            .incense-stick .ember {
+                width: 6px;
+                height: 6px;
+                top: -2px;
+            }
+            .offering-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.3rem;
+            }
+            .btn-incense {
+                width: 48px;
+                height: 48px;
+                font-size: 1.4rem;
+            }
+            .btn-reset {
+                width: 34px;
+                height: 34px;
+                font-size: 0.85rem;
+            }
+            .offering-btn .btn-label {
+                font-size: 0.5rem;
+                bottom: -16px;
+            }
+            .btn-incense .btn-label {
+                font-size: 0.55rem;
+                bottom: -18px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .buddha-card {
+                width: 50px;
+                border-radius: 10px;
+            }
+            .buddha-card .buddha-name {
+                font-size: 0.5rem;
+            }
+            .buddha-card .buddha-placeholder {
+                font-size: 1.1rem;
+            }
+            .offering-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 1.1rem;
+                border-width: 1.5px;
+            }
+            .btn-incense {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+            .shrine-image-container {
+                width: clamp(90px, 45vw, 140px);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .main-container {
+                max-width: 1000px;
+                gap: 20px;
+            }
+            .shrine-image-container {
+                width: 280px;
+            }
+            .buddha-card {
+                width: 110px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 粒子背景 -->
+    <div class="particles-bg" id="particlesBg"></div>
+
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- 标题 -->
+        <header class="header">
+            <span class="title">🙏 赛 博 上 香</span>
+            <span class="subtitle">· Digital Incense Offering ·</span>
+            <span class="decorative-line"></span>
+        </header>
+
+        <!-- 佛龛选择栏 -->
+        <nav class="buddha-selector" id="buddhaSelector">
+            <!-- JS动态生成 -->
+        </nav>
+
+        <!-- 主佛展示区 -->
+        <section class="main-shrine active-glow" id="mainShrine">
+            <div class="shrine-image-container" id="shrineImageContainer">
+                <img id="shrineImage" src="" alt="佛像" onerror="this.style.display='none'">
+                <span class="shrine-placeholder" id="shrinePlaceholder">🧘</span>
+            </div>
+            <div class="shrine-label" id="shrineLabel">释迦摩尼佛</div>
+
+            <!-- 供桌 -->
+            <div class="offering-altar" id="offeringAltar">
+                <span class="altar-surface"></span>
+                <span class="altar-empty-hint" id="altarEmptyHint">— 供桌空空，添些贡品吧 —</span>
+                <!-- 香炉和贡品动态插入 -->
+            </div>
+        </section>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <div class="offering-palette" id="offeringPalette">
+                <!-- JS动态生成贡品按钮 -->
+            </div>
+            <button class="btn-incense" id="btnIncense" title="上香">
+                🕯️
+                <span class="btn-label">上香</span>
+            </button>
+            <button class="btn-reset" id="btnReset" title="重置供桌">
+                🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ============ 数据定义 ============
+            // 佛像数据（图片路径可替换为实际PNG路径）
+            const buddhaData = [
+                { id: 'shakyamuni', name: '释迦摩尼佛', emoji: '🧘', imgSrc: 'images/ShiJiaMoNiFo.png',
+                    altImgSrc: '' },
+                { id: 'manjusri', name: '文殊菩萨', emoji: '📜', imgSrc: 'images/WenShuPuSa.png', altImgSrc: '' },
+                { id: 'samantabhadra', name: '普贤菩萨', emoji: '🐘', imgSrc: 'images/PuXianPuSa.png',
+                    altImgSrc: '' },
+                { id: 'avalokitesvara', name: '观音菩萨', emoji: '💧', imgSrc: 'images/GuanZiZaiPuSa.png',
+                    altImgSrc: '' },
+                { id: 'ksitigarbha', name: '地藏菩萨', emoji: '🔮', imgSrc: 'images/DiZangWangPuSa.png',
+                altImgSrc: '' },
+                { id: 'caishen', name: '财神', emoji: '🔮', imgSrc: 'images/CaiShen.png',
+                altImgSrc: '' },
+            ];
+
+            // 贡品类型定义
+            const offeringTypes = [
+                { type: 'apple', emoji: '🍎', label: '苹果', imgSrc: 'images/apple.png' },
+                { type: 'pear', emoji: '🍐', label: '鸭梨', imgSrc: 'images/pear.png' },
+                { type: 'orange', emoji: '🍊', label: '橘子', imgSrc: 'images/orange.png' },
+                { type: 'banana', emoji: '🍌', label: '香蕉', imgSrc: 'images/banana.png' },
+                { type: 'peach', emoji: '🍑', label: '仙桃', imgSrc: 'images/peach.png' },
+                { type: 'lotus', emoji: '📿', label: '佛珠', imgSrc: 'images/beads.png' },
+                { type: 'cake', emoji: '🍡', label: '糕点', imgSrc: 'images/cake.png' },
+                { type: 'candle', emoji: '🕯️', label: '烛灯', imgSrc: 'images/candle.png' },
+            ];
+
+            // 每个佛的供桌状态
+            const shrineStates = {};
+            buddhaData.forEach(b => {
+                shrineStates[b.id] = {
+                    offerings: [], // { type, emoji, uniqueId }
+                    incenseCount: 0,
+                    incenseTimers: [],
+                };
+            });
+
+            let currentBuddhaId = 'shakyamuni';
+            const MAX_OFFERINGS = 10;
+            const MAX_INCENSE = 6;
+            const INCENSE_LIFETIME = 35000; // 香燃烧时间（毫秒）
+            const SMOKE_INTERVAL = 400; // 烟雾生成间隔
+
+            // ============ DOM引用 ============
+            const buddhaSelector = document.getElementById('buddhaSelector');
+            const shrineImage = document.getElementById('shrineImage');
+            const shrinePlaceholder = document.getElementById('shrinePlaceholder');
+            const shrineLabel = document.getElementById('shrineLabel');
+            const shrineImageContainer = document.getElementById('shrineImageContainer');
+            const offeringAltar = document.getElementById('offeringAltar');
+            const altarEmptyHint = document.getElementById('altarEmptyHint');
+            const offeringPalette = document.getElementById('offeringPalette');
+            const btnIncense = document.getElementById('btnIncense');
+            const btnReset = document.getElementById('btnReset');
+            const mainShrine = document.getElementById('mainShrine');
+            const particlesBg = document.getElementById('particlesBg');
+
+            // ============ 初始化粒子背景 ============
+            function createParticles() {
+                const colors = ['#ffd54f', '#ffab40', '#ff4081', '#00e5ff', '#b388ff', '#76ff03', '#ff6d00'];
+                for (let i = 0; i < 35; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    const size = Math.random() * 3 + 1.5;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    particle.style.animationDuration = (Math.random() * 18 + 10) + 's';
+                    particle.style.animationDelay = (Math.random() * 15) + 's';
+                    particle.style.boxShadow = `0 0 ${size*3}px ${particle.style.backgroundColor}`;
+                    particlesBg.appendChild(particle);
+                }
+            }
+            createParticles();
+
+            // ============ 渲染佛龛选择栏 ============
+            function renderBuddhaSelector() {
+                buddhaSelector.innerHTML = '';
+                buddhaData.forEach((buddha, index) => {
+                    const card = document.createElement('div');
+                    card.classList.add('buddha-card');
+                    if (buddha.id === currentBuddhaId) card.classList.add('active');
+                    card.dataset.buddhaId = buddha.id;
+                    card.innerHTML = `
+                        <div class="buddha-img-wrap">
+                            <img src="${buddha.imgSrc}" alt="${buddha.name}" 
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                                 style="display:block;">
+                            <span class="buddha-placeholder" style="display:none;">${buddha.emoji}</span>
+                        </div>
+                        <span class="buddha-name">${buddha.name.replace('菩萨','').replace('佛','')}</span>
+                    `;
+                    // 如果图片加载失败，显示emoji
+                    const imgEl = card.querySelector('img');
+                    const placeholderEl = card.querySelector('.buddha-placeholder');
+                    imgEl.addEventListener('error', () => {
+                        imgEl.style.display = 'none';
+                        placeholderEl.style.display = 'flex';
+                    });
+                    imgEl.addEventListener('load', () => {
+                        imgEl.style.display = 'block';
+                        placeholderEl.style.display = 'none';
+                    });
+                    // 尝试加载（如果图片存在则显示）
+                    if (imgEl.complete && imgEl.naturalWidth === 0) {
+                        imgEl.style.display = 'none';
+                        placeholderEl.style.display = 'flex';
+                    }
+                    card.addEventListener('click', () => switchBuddha(buddha.id));
+                    buddhaSelector.appendChild(card);
+                });
+            }
+
+            // ============ 切换佛 ============
+            function switchBuddha(buddhaId) {
+                if (currentBuddhaId === buddhaId) return;
+                currentBuddhaId = buddhaId;
+                const buddha = buddhaData.find(b => b.id === buddhaId);
+
+                // 更新选择栏高亮
+                document.querySelectorAll('.buddha-card').forEach(card => {
+                    card.classList.toggle('active', card.dataset.buddhaId === buddhaId);
+                });
+
+                // 更新主展示区
+                shrineLabel.textContent = buddha.name;
+                shrineImage.src = buddha.imgSrc;
+                shrinePlaceholder.textContent = buddha.emoji;
+                shrinePlaceholder.style.display = 'flex';
+                shrineImage.style.display = 'block';
+                // 检查图片
+                if (shrineImage.complete && shrineImage.naturalWidth === 0) {
+                    shrineImage.style.display = 'none';
+                    shrinePlaceholder.style.display = 'flex';
+                }
+                shrineImage.onerror = function() {
+                    shrineImage.style.display = 'none';
+                    shrinePlaceholder.style.display = 'flex';
+                };
+                shrineImage.onload = function() {
+                    shrineImage.style.display = 'block';
+                    shrinePlaceholder.style.display = 'none';
+                };
+
+                // 触发微光动画
+                shrineImageContainer.style.boxShadow =
+                    '0 0 50px rgba(255,171,64,0.5), 0 0 100px rgba(255,171,64,0.2)';
+                setTimeout(() => {
+                    shrineImageContainer.style.boxShadow =
+                        '0 0 30px rgba(255,171,64,0.3), 0 0 80px rgba(255,171,64,0.1)';
+                }, 600);
+
+                // 重新渲染供桌
+                renderAltar();
+            }
+
+            // ============ 渲染供桌 ============
+            function renderAltar() {
+                const state = shrineStates[currentBuddhaId];
+                // 保留香炉和表面线，清除贡品
+                const existingBurner = offeringAltar.querySelector('.incense-burner');
+                const existingSurface = offeringAltar.querySelector('.altar-surface');
+                const existingSmoke = offeringAltar.querySelectorAll('.smoke-particle');
+                existingSmoke.forEach(s => s.remove());
+
+                offeringAltar.innerHTML = '';
+
+                // 重新添加表面线
+                const surfaceLine = document.createElement('span');
+                surfaceLine.classList.add('altar-surface');
+                offeringAltar.appendChild(surfaceLine);
+
+                // 添加香炉
+                const burner = createBurnerElement(state);
+                offeringAltar.appendChild(burner);
+
+                // 添加贡品
+                if (state.offerings.length === 0) {
+                    const hint = document.createElement('span');
+                    hint.classList.add('altar-empty-hint');
+                    hint.id = 'altarEmptyHint';
+                    hint.textContent = '— 供桌空空，添些贡品吧 —';
+                    offeringAltar.appendChild(hint);
+                } else {
+                    state.offerings.forEach(offering => {
+                        const offeringEl = createOfferingElement(offering);
+                        offeringAltar.appendChild(offeringEl);
+                    });
+                }
+
+                // 如果有香，渲染香柱
+                if (state.incenseCount > 0) {
+                    for (let i = 0; i < state.incenseCount; i++) {
+                        addIncenseStickToBurner(burner, i, state.incenseCount);
+                    }
+                    startSmokeForBurner(burner);
+                }
+            }
+
+            function createBurnerElement(state) {
+                const burner = document.createElement('div');
+                burner.classList.add('incense-burner');
+                burner.innerHTML = `
+                    <div class="burner-rim"></div>
+                    <div class="burner-body"></div>
+                `;
+                burner.dataset.incenseCount = state.incenseCount;
+                return burner;
+            }
+
+            function createOfferingElement(offering) {
+                const el = document.createElement('div');
+                el.classList.add('altar-offering');
+                el.textContent = offering.emoji;
+                el.title = offering.label || offering.type;
+                el.dataset.offeringId = offering.uniqueId;
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeOffering(offering.uniqueId);
+                });
+                return el;
+            }
+
+            function addIncenseStickToBurner(burner, index, total) {
+                const stick = document.createElement('div');
+                stick.classList.add('incense-stick');
+                // 多根香时稍微错开位置
+                const offsetX = total > 1 ? (index - (total - 1) / 2) * 7 : 0;
+                stick.style.left = `calc(50% + ${offsetX}px)`;
+                stick.style.transform = `translateX(calc(-50% + ${offsetX}px))`;
+                stick.innerHTML = '<div class="ember"></div>';
+                stick.dataset.stickIndex = index;
+                burner.appendChild(stick);
+            }
+
+            function startSmokeForBurner(burner) {
+                const state = shrineStates[currentBuddhaId];
+                if (state.incenseCount <= 0) return;
+                // 清除旧的烟雾定时器
+                if (burner._smokeInterval) clearInterval(burner._smokeInterval);
+
+                burner._smokeInterval = setInterval(() => {
+                    const sticks = burner.querySelectorAll('.incense-stick');
+                    sticks.forEach(stick => {
+                        const ember = stick.querySelector('.ember');
+                        if (ember && document.contains(ember)) {
+                            const emberRect = ember.getBoundingClientRect();
+                            const altarRect = offeringAltar.getBoundingClientRect();
+                            const relX = emberRect.left - altarRect.left + emberRect.width / 2;
+                            const relY = emberRect.top - altarRect.top;
+                            createSmokeParticle(relX, relY);
+                        }
+                    });
+                }, SMOKE_INTERVAL);
+
+                // 存储引用以便清理
+                if (!burner._smokeIntervals) burner._smokeIntervals = [];
+                burner._smokeIntervals.push(burner._smokeInterval);
+            }
+
+            function createSmokeParticle(x, y) {
+                const particle = document.createElement('div');
+                particle.classList.add('smoke-particle');
+                const size = Math.random() * 6 + 3;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.animationDuration = (Math.random() * 2 + 2.5) + 's';
+                particle.style.background = `rgba(${180 + Math.random()*40}, ${175 + Math.random()*35}, ${195 + Math.random()*30}, 0.55)`;
+                offeringAltar.appendChild(particle);
+
+                // 动画结束后移除
+                particle.addEventListener('animationend', () => {
+                    if (particle.parentNode) particle.parentNode.removeChild(particle);
+                });
+            }
+
+            // ============ 添加贡品 ============
+            function addOffering(offeringType) {
+                const state = shrineStates[currentBuddhaId];
+                if (state.offerings.length >= MAX_OFFERINGS) {
+                    showMeritPopup('供桌已满 🙏', '#ffab40');
+                    shakeElement(offeringAltar);
+                    return;
+                }
+                const offering = {
+                    type: offeringType.type,
+                    emoji: offeringType.emoji,
+                    label: offeringType.label,
+                    uniqueId: Date.now() + Math.random().toString(36).substr(2, 6),
+                };
+                state.offerings.push(offering);
+                renderAltar();
+                showMeritPopup('功德 +1 ✨', '#ffd54f');
+                // 高亮闪一下供桌
+                offeringAltar.style.boxShadow = '0 0 30px rgba(255,171,64,0.4), inset 0 0 20px rgba(255,171,64,0.1)';
+                setTimeout(() => {
+                    offeringAltar.style.boxShadow = '';
+                }, 500);
+            }
+
+            function removeOffering(offeringId) {
+                const state = shrineStates[currentBuddhaId];
+                const idx = state.offerings.findIndex(o => o.uniqueId === offeringId);
+                if (idx >= 0) {
+                    state.offerings.splice(idx, 1);
+                    renderAltar();
+                    showMeritPopup('已撤回', '#ff5252');
+                }
+            }
+
+            // ============ 上香 ============
+            function addIncense() {
+                const state = shrineStates[currentBuddhaId];
+                if (state.incenseCount >= MAX_INCENSE) {
+                    showMeritPopup('香火太旺，稍后再点 🙏', '#ffab40');
+                    shakeElement(offeringAltar);
+                    return;
+                }
+                state.incenseCount++;
+                const timerId = setTimeout(() => {
+                    // 香燃尽
+                    if (shrineStates[currentBuddhaId]) {
+                        shrineStates[currentBuddhaId].incenseCount = Math.max(0, shrineStates[currentBuddhaId]
+                            .incenseCount - 1);
+                        shrineStates[currentBuddhaId].incenseTimers = shrineStates[currentBuddhaId].incenseTimers
+                            .filter(t => t !== timerId);
+                        renderAltar();
+                    }
+                }, INCENSE_LIFETIME);
+                state.incenseTimers.push(timerId);
+                renderAltar();
+                showMeritPopup('清香一炷 🙏 功德无量', '#ffd54f');
+                // 闪光效果
+                const burner = offeringAltar.querySelector('.incense-burner');
+                if (burner) {
+                    burner.style.filter = 'brightness(1.6)';
+                    setTimeout(() => { burner.style.filter = ''; }, 400);
+                }
+                mainShrine.classList.add('active-glow');
+                setTimeout(() => mainShrine.classList.add('active-glow'), 100);
+            }
+
+            // ============ 重置供桌 ============
+            function resetAltar() {
+                const state = shrineStates[currentBuddhaId];
+                // 清除所有香计时器
+                state.incenseTimers.forEach(tid => clearTimeout(tid));
+                state.incenseTimers = [];
+                state.incenseCount = 0;
+                state.offerings = [];
+                // 清除烟雾定时器
+                const burner = offeringAltar.querySelector('.incense-burner');
+                if (burner && burner._smokeInterval) {
+                    clearInterval(burner._smokeInterval);
+                    burner._smokeInterval = null;
+                }
+                if (burner && burner._smokeIntervals) {
+                    burner._smokeIntervals.forEach(i => clearInterval(i));
+                    burner._smokeIntervals = [];
+                }
+                renderAltar();
+                showMeritPopup('供桌已清 🔄', '#00e5ff');
+            }
+
+            // ============ 辅助效果 ============
+            function showMeritPopup(text, color) {
+                const popup = document.createElement('div');
+                popup.classList.add('merit-popup');
+                popup.textContent = text;
+                popup.style.color = color;
+                popup.style.textShadow = `0 0 12px ${color}, 0 0 30px ${color}`;
+                popup.style.left = '50%';
+                popup.style.top = '55%';
+                popup.style.transform = 'translate(-50%, -50%)';
+                document.body.appendChild(popup);
+                popup.addEventListener('animationend', () => {
+                    if (popup.parentNode) popup.parentNode.removeChild(popup);
+                });
+                // 2秒后强制移除
+                setTimeout(() => {
+                    if (popup.parentNode) popup.parentNode.removeChild(popup);
+                }, 2200);
+            }
+
+            function shakeElement(el) {
+                el.style.animation = 'none';
+                el.offsetHeight; // reflow
+                el.style.animation = 'shake 0.5s ease';
+                setTimeout(() => {
+                    el.style.animation = '';
+                }, 500);
+            }
+
+            // 添加shake动画
+            const shakeStyle = document.createElement('style');
+            shakeStyle.textContent = `
+                @keyframes shake {
+                    0%,100% { transform: translateX(0); }
+                    15% { transform: translateX(-6px); }
+                    30% { transform: translateX(6px); }
+                    45% { transform: translateX(-5px); }
+                    60% { transform: translateX(4px); }
+                    75% { transform: translateX(-2px); }
+                    90% { transform: translateX(2px); }
+                }
+            `;
+            document.head.appendChild(shakeStyle);
+
+            // ============ 渲染贡品选择面板 ============
+            function renderOfferingPalette() {
+                offeringPalette.innerHTML = '';
+                offeringTypes.forEach(ot => {
+                    const btn = document.createElement('button');
+                    btn.classList.add('offering-btn');
+                    btn.textContent = ot.emoji;
+                    btn.title = ot.label;
+                    btn.innerHTML = `${ot.emoji}<span class="btn-label">${ot.label}</span>`;
+                    btn.addEventListener('click', () => addOffering(ot));
+                    // 移动端长按提示
+                    btn.addEventListener('touchstart', function(e) {
+                        this._touchStartTime = Date.now();
+                    });
+                    btn.addEventListener('touchend', function(e) {
+                        const duration = Date.now() - (this._touchStartTime || 0);
+                        if (duration > 600) {
+                            // 长按，显示提示
+                            showMeritPopup(ot.label, '#00e5ff');
+                        }
+                    });
+                    offeringPalette.appendChild(btn);
+                });
+            }
+
+            // ============ 事件绑定 ============
+            btnIncense.addEventListener('click', addIncense);
+            btnReset.addEventListener('click', resetAltar);
+
+            // 键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.code === 'Space') {
+                    e.preventDefault();
+                    addIncense();
+                } else if (e.key === 'r' && e.ctrlKey) {
+                    e.preventDefault();
+                    resetAltar();
+                } else if (e.key >= '1' && e.key <= '8') {
+                    const idx = parseInt(e.key) - 1;
+                    if (idx < offeringTypes.length) {
+                        addOffering(offeringTypes[idx]);
+                    }
+                } else if (e.key >= '1' && e.key <= '5' && e.ctrlKey) {
+                    const idx = parseInt(e.key) - 1;
+                    if (idx < buddhaData.length) {
+                        switchBuddha(buddhaData[idx].id);
+                    }
+                }
+            });
+
+            // 供桌区域也支持点击添加贡品（双击供桌随机添加）
+            offeringAltar.addEventListener('dblclick', (e) => {
+                if (e.target === offeringAltar || e.target.classList.contains('altar-surface') || e.target
+                    .classList.contains('altar-empty-hint')) {
+                    const randomOffering = offeringTypes[Math.floor(Math.random() * offeringTypes.length)];
+                    addOffering(randomOffering);
+                }
+            });
+
+            // ============ 初始化 ============
+            function init() {
+                renderBuddhaSelector();
+                renderOfferingPalette();
+                renderAltar();
+                // 尝试加载当前佛像图片
+                const currentBuddha = buddhaData.find(b => b.id === currentBuddhaId);
+                shrineImage.src = currentBuddha.imgSrc;
+                shrinePlaceholder.textContent = currentBuddha.emoji;
+                shrineLabel.textContent = currentBuddha.name;
+                if (shrineImage.complete && shrineImage.naturalWidth === 0) {
+                    shrineImage.style.display = 'none';
+                    shrinePlaceholder.style.display = 'flex';
+                }
+            }
+
+            init();
+
+            // ============ 导出调试接口 ============
+            console.log('🙏 赛博上香已就绪');
+            console.log('   - 点击佛龛卡片切换佛像');
+            console.log('   - 点击贡品按钮添加贡品');
+            console.log('   - 点击🕯️上香按钮点燃香火');
+            console.log('   - 点击供桌上的贡品可移除');
+            console.log('   - 双击供桌随机添加贡品');
+            console.log('   - 按键1-8快速添加贡品');
+            console.log('   - 空格键快速上香');
+            console.log('   - 图片路径: images/ 目录下的PNG文件');
+            console.log('   💡 将实际PNG图片放入images文件夹即可替换占位符');
+        })();
+    </script>
+</body>
+</html>
