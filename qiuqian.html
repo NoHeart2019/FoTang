@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博求签 · 解惑</title>
+    <style>
+        :root {
+            --bg: #07070f;
+            --surface: #101122;
+            --gold: #e0b040;
+            --gold-glow: #ffe080;
+            --cyan: #00dcff;
+            --magenta: #ff3878;
+            --text: #ded8be;
+            --text-dim: #8a8570;
+            --sign-upper: #ffd700;
+            --sign-good: #ff6b6b;
+            --sign-mid-good: #ff9f43;
+            --sign-mid: #5dade2;
+            --sign-lower: #8e8ea0;
+            --wood-dark: #28140a;
+            --wood-mid: #422012;
+            --wood-light: #5e301a;
+            --bamboo: #f2e2b8;
+            --bamboo-dark: #c4a058;
+            --stick-red: #cc2828;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            cursor: default;
+        }
+
+        /* 背景粒子 */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+            opacity: 0;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0) scale(0); opacity: 0; }
+            8% { opacity: 0.7; }
+            25% { opacity: 0.3; }
+            65% { opacity: 0.06; }
+            100% { transform: translateY(-105vh) translateX(55px) scale(1.5); opacity: 0; }
+        }
+
+        /* 扫描线 */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(0, 0, 0, 0.022) 3px,
+                    rgba(0, 0, 0, 0.022) 4px);
+        }
+
+        /* 主容器 */
+        .app-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 470px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: center;
+        }
+
+        /* 阶段面板 */
+        .stage {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stage.hidden {
+            display: none;
+        }
+
+        /* ===== 阶段1：输入 ===== */
+        .input-card {
+            background: var(--surface);
+            border: 1px solid rgba(224, 176, 64, 0.2);
+            border-radius: 18px;
+            padding: 30px 22px 26px;
+            width: 100%;
+            box-shadow: 0 0 55px rgba(224, 176, 64, 0.06), 0 0 90px rgba(255, 56, 120, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.014);
+            position: relative;
+            overflow: hidden;
+        }
+        .input-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(224, 176, 64, 0.022), transparent, rgba(0, 220, 255, 0.022), transparent);
+            animation: rotateGlow 14s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes rotateGlow { to { transform: rotate(360deg); } }
+        .input-card .card-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .title-main {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            background: linear-gradient(180deg, #ffe080 0%, #e0a030 45%, #b06814 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 15px rgba(255, 170, 30, 0.4));
+            margin-bottom: 2px;
+        }
+        .title-sub {
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--cyan);
+            letter-spacing: 0.22em;
+            margin-bottom: 18px;
+            text-shadow: 0 0 10px rgba(0, 220, 255, 0.45);
+        }
+
+        /* 步骤折叠面板 */
+        .steps-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(224, 176, 64, 0.25);
+            color: var(--gold);
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            margin: 0 auto 16px;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(224,176,64,0.1);
+        }
+        .steps-toggle-btn:hover {
+            background: rgba(224, 176, 64, 0.08);
+            border-color: var(--gold-glow);
+            color: var(--gold-glow);
+            box-shadow: 0 0 18px rgba(224,176,64,0.3);
+        }
+        .steps-toggle-btn .arrow-icon {
+            display: inline-block;
+            transition: transform 0.3s;
+            font-size: 0.7rem;
+        }
+        .steps-toggle-btn.expanded .arrow-icon {
+            transform: rotate(180deg);
+        }
+
+        .steps-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), margin 0.3s;
+            margin-bottom: 0;
+        }
+        .steps-panel.open {
+            max-height: 160px; /* 足够显示全部步骤 */
+            margin-bottom: 18px;
+        }
+
+        .steps-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 8px 12px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.018);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 52px;
+            position: relative;
+        }
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: #fff;
+            border: 1.5px solid rgba(224, 176, 64, 0.5);
+            background: rgba(224, 176, 64, 0.1);
+            box-shadow: 0 0 8px rgba(224, 176, 64, 0.2);
+        }
+        .step-label {
+            font-size: 0.62rem;
+            color: var(--text-dim);
+            letter-spacing: 0.03em;
+            text-align: center;
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+        .step-divider {
+            width: 14px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.12);
+            align-self: center;
+            margin-bottom: 18px;
+            flex-shrink: 0;
+            display: none;
+        }
+        @media (min-width: 420px) {
+            .step-divider { display: block; }
+        }
+        @media (max-width: 419px) {
+            .steps-row { gap: 6px 8px; }
+            .step-item { min-width: 44px; }
+            .step-num { width: 22px; height: 22px; font-size: 0.62rem; }
+            .step-label { font-size: 0.56rem; }
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            letter-spacing: 0.04em;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.022);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.96rem;
+            font-family: inherit;
+            letter-spacing: 0.03em;
+            transition: all 0.3s;
+            outline: none;
+        }
+        .input-group input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 18px rgba(224, 176, 64, 0.16), 0 0 0 3px rgba(224, 176, 64, 0.035);
+            background: rgba(255, 255, 255, 0.038);
+        }
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.16);
+            letter-spacing: 0.02em;
+        }
+        .input-template {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .input-template span {
+            color: var(--text);
+            font-size: 0.92rem;
+            white-space: nowrap;
+        }
+        .input-template input {
+            flex: 1;
+            min-width: 48px;
+            text-align: center;
+        }
+        .input-template .fixed-text {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+        }
+
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 14px 20px;
+            margin-top: 16px;
+            background: linear-gradient(135deg, #b06814 0%, #d49024 30%, #e0b040 50%, #d49024 70%, #b06814 100%);
+            border: none;
+            border-radius: 26px;
+            color: #1a0c00;
+            font-size: 1.08rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 5px 22px rgba(170, 110, 18, 0.35);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 7px 30px rgba(210, 150, 35, 0.5);
+            transform: translateY(-2px);
+        }
+        .btn-primary:active {
+            transform: scale(0.94);
+            box-shadow: 0 3px 12px rgba(170, 110, 18, 0.4);
+            transition: all 0.07s;
+        }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -55%;
+            width: 35%;
+            height: 160%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(25deg);
+            animation: btnShine 3.5s ease-in-out infinite;
+        }
+        @keyframes btnShine {
+            0%, 100% { left: -55%; }
+            38% { left: 115%; }
+            39% { left: -55%; }
+        }
+
+        /* ===== 阶段2：求签 ===== */
+        .shake-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .wish-reminder {
+            color: var(--text-dim);
+            font-size: 0.83rem;
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: 0.04em;
+            background: rgba(255, 255, 255, 0.022);
+            padding: 8px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            max-width: 92%;
+            line-height: 1.5;
+        }
+        .wish-reminder strong {
+            color: var(--gold-glow);
+            font-weight: 600;
+        }
+
+        /* 签筒容器 */
+        .cylinder-wrapper {
+            position: relative;
+            width: 190px;
+            height: 335px;
+            margin: 0 auto 4px;
+            perspective: 500px;
+            cursor: default;
+        }
+        @media (max-width: 400px) {
+            .cylinder-wrapper { width: 150px; height: 278px; }
+        }
+
+        .cylinder {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 190px;
+            background: linear-gradient(180deg, #54301e 0%, #3e1c10 10%, #2a1006 28%, #2a1006 38%, #3e1c10 52%, #2a1006 66%, #2a1006 76%, #3e1c10 90%, #54301e 100%);
+            border-radius: 13px 13px 19px 19px;
+            position: relative;
+            box-shadow: 0 5px 26px rgba(0,0,0,0.55), 0 1px 5px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.026), 0 0 26px rgba(210,150,45,0.09);
+            border: 2px solid #1c0803;
+            border-top: 3px solid #522612;
+            transition: transform 0.08s;
+            z-index: 2;
+        }
+        @media (max-width: 400px) {
+            .cylinder { width: 90px; height: 156px; border-radius: 10px 10px 15px 15px; bottom: 12px; }
+        }
+        .cylinder::before {
+            content: '';
+            position: absolute;
+            top: 24px; left: -5px; right: -5px; height: 8px;
+            background: linear-gradient(180deg, #725030, #ba8e48, #725030);
+            border-radius: 2px; z-index: 3;
+            box-shadow: 0 0 10px rgba(180,130,45,0.4);
+        }
+        @media (max-width: 400px) {
+            .cylinder::before { top: 18px; height: 7px; left: -4px; right: -4px; }
+        }
+        .cylinder::after {
+            content: '';
+            position: absolute;
+            bottom: 12px; left: -5px; right: -5px; height: 7px;
+            background: linear-gradient(180deg, #5a3824, #82603c, #5a3824);
+            border-radius: 2px; z-index: 3;
+            box-shadow: 0 0 7px rgba(150,100,35,0.3);
+        }
+        @media (max-width: 400px) {
+            .cylinder::after { bottom: 9px; height: 5px; left: -4px; right: -4px; }
+        }
+
+        .cylinder-mouth {
+            position: absolute;
+            top: -6px; left: 50%; transform: translateX(-50%);
+            width: 100px; height: 28px;
+            background: radial-gradient(ellipse at center, #100401 0%, #1e0a04 55%, #2c1006 100%);
+            border-radius: 50%; z-index: 5;
+            box-shadow: 0 0 14px rgba(0,0,0,0.6), 0 0 5px rgba(170,110,28,0.22);
+            border: 2px solid #2c1006;
+        }
+        @media (max-width: 400px) {
+            .cylinder-mouth { width: 82px; height: 23px; top: -5px; }
+        }
+
+        .sticks-container {
+            position: absolute;
+            bottom: 155px; left: 50%; transform: translateX(-50%);
+            z-index: 4; display: flex; gap: 3px; align-items: flex-end;
+            pointer-events: all;
+        }
+        @media (max-width: 400px) {
+            .sticks-container { bottom: 128px; gap: 2px; }
+        }
+
+        .stick {
+            width: 9px; height: 120px;
+            background: linear-gradient(180deg, #f6e6bc 0%, #ead8a0 6%, #d4bb78 38%, #c4a058 68%, #b49042 100%);
+            border-radius: 2px 2px 1px 1px;
+            position: relative; cursor: pointer;
+            transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, opacity 0.35s;
+            box-shadow: 0 1.5px 3px rgba(0,0,0,0.26);
+            transform-origin: bottom center;
+            animation: stickIdle 2.6s ease-in-out infinite;
+        }
+        @media (max-width: 400px) {
+            .stick { width: 7px; height: 98px; }
+        }
+        .stick:nth-child(1){ animation-delay: 0s; } .stick:nth-child(2){ animation-delay: 0.2s; }
+        .stick:nth-child(3){ animation-delay: 0.4s; } .stick:nth-child(4){ animation-delay: 0.6s; }
+        .stick:nth-child(5){ animation-delay: 0.8s; } .stick:nth-child(6){ animation-delay: 0.14s; }
+        .stick:nth-child(7){ animation-delay: 0.34s; } .stick:nth-child(8){ animation-delay: 0.54s; }
+        .stick:nth-child(9){ animation-delay: 0.74s; } .stick:nth-child(10){ animation-delay: 0.26s; }
+        .stick:nth-child(11){ animation-delay: 0.46s; } .stick:nth-child(12){ animation-delay: 0.66s; }
+        @keyframes stickIdle {
+            0%,100%{ transform: translateY(0); }
+            28%{ transform: translateY(-2px); }
+            56%{ transform: translateY(0.6px); }
+        }
+        .stick::before {
+            content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+            width: 11px; height: 11px; background: radial-gradient(circle at 50% 36%, #ff4c4c, #b81818);
+            border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.4); transition: box-shadow 0.3s;
+        }
+        @media (max-width: 400px) { .stick::before { width: 9px; height: 9px; top: -3px; } }
+
+        .stick.selectable {
+            animation: selectableBreath 1.5s ease-in-out infinite !important;
+            box-shadow: 0 2px 7px rgba(255,190,50,0.4), 0 0 12px rgba(255,170,35,0.22);
+        }
+        .stick.selectable::before { box-shadow: 0 0 7px rgba(255,110,50,0.55), 0 1px 2px rgba(0,0,0,0.4); }
+        @keyframes selectableBreath {
+            0%,100%{ transform: translateY(0); box-shadow: 0 2px 7px rgba(255,190,50,0.4), 0 0 12px rgba(255,170,35,0.22); }
+            50%{ transform: translateY(-4.5px); box-shadow: 0 3px 14px rgba(255,210,70,0.65), 0 0 24px rgba(255,190,45,0.4); }
+        }
+        .stick.selectable:hover {
+            transform: translateY(-9px) scale(1.05) !important;
+            box-shadow: 0 4px 20px rgba(255,210,70,0.8), 0 0 32px rgba(255,190,45,0.5) !important;
+            z-index: 12 !important; animation: none !important;
+        }
+        .stick.selectable:active { transform: translateY(-13px) scale(1.07) !important; transition: all 0.05s !important; }
+
+        .stick.flying-out {
+            animation: flyOut 0.68s cubic-bezier(0.22,0.61,0.36,1) forwards !important;
+            z-index: 20 !important; pointer-events: none !important;
+        }
+        @keyframes flyOut {
+            0%{ transform: translateY(0) scale(1); opacity:1; box-shadow:0 3px 18px rgba(255,210,70,0.7); }
+            35%{ transform: translateY(-85px) scale(1.05); opacity:1; box-shadow:0 5px 26px rgba(255,230,90,0.95); }
+            65%{ transform: translateY(-160px) scale(1.22); opacity:0.82; box-shadow:0 7px 36px rgba(255,230,110,0.7); }
+            100%{ transform: translateY(-230px) scale(1.45); opacity:0; box-shadow:0 9px 46px rgba(255,230,110,0); }
+        }
+
+        .stick.retreating {
+            animation: retreatStick 0.48s ease-in forwards !important;
+            pointer-events: none !important;
+        }
+        @keyframes retreatStick { 0%{ transform:translateY(0); opacity:1; } 100%{ transform:translateY(12px); opacity:0.3; } }
+
+        .cylinder.shaking { animation: shakeCylinder 0.12s ease-in-out; }
+        @keyframes shakeCylinder {
+            0%,100%{ transform: translateX(-50%) rotate(0deg); }
+            18%{ transform: translateX(-50%) rotate(6deg); }
+            38%{ transform: translateX(-50%) rotate(-5deg); }
+            58%{ transform: translateX(-50%) rotate(4deg); }
+            78%{ transform: translateX(-50%) rotate(-2deg); }
+        }
+        .cylinder.shaking-hard { animation: shakeHard 0.09s ease-in-out; }
+        @keyframes shakeHard {
+            0%,100%{ transform: translateX(-50%) rotate(0deg); }
+            14%{ transform: translateX(-50%) rotate(10deg); }
+            32%{ transform: translateX(-50%) rotate(-8deg); }
+            50%{ transform: translateX(-50%) rotate(7deg); }
+            68%{ transform: translateX(-50%) rotate(-4deg); }
+            84%{ transform: translateX(-50%) rotate(2deg); }
+        }
+        .sticks-container.shaking-sticks .stick { animation: stickJump 0.16s ease-in-out !important; }
+        @keyframes stickJump {
+            0%,100%{ transform: translateY(0); }
+            22%{ transform: translateY(-20px); }
+            48%{ transform: translateY(-6px); }
+            72%{ transform: translateY(-14px); }
+        }
+
+        .btn-shake {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 12px 26px; background: transparent;
+            border: 2px solid var(--gold); border-radius: 26px;
+            color: var(--gold); font-size: 0.98rem; font-weight: 600;
+            letter-spacing: 0.05em; cursor: pointer; font-family: inherit;
+            transition: all 0.3s; position: relative; z-index: 30;
+            box-shadow: 0 0 16px rgba(224,176,64,0.16); margin-top: 6px;
+        }
+        .btn-shake:hover { background: rgba(224,176,64,0.06); box-shadow: 0 0 26px rgba(224,176,64,0.32); border-color: var(--gold-glow); color: var(--gold-glow); }
+        .btn-shake:active { transform: scale(0.92); transition: all 0.05s; }
+        .btn-shake:disabled { opacity: 0.38; pointer-events: none; border-color: #555; color: #555; box-shadow: none; }
+        .shake-hint { color: var(--text-dim); font-size: 0.68rem; margin-top: 5px; letter-spacing: 0.04em; text-align: center; opacity: 0.6; min-height: 16px; transition: all 0.3s; }
+        .shake-hint.glow-hint { color: var(--gold-glow); opacity: 0.9; text-shadow: 0 0 8px rgba(255,190,50,0.5); animation: hintPulse 1.5s ease-in-out infinite; }
+        @keyframes hintPulse { 0%,100%{ opacity:0.7; } 50%{ opacity:1; } }
+        .time-tip { color: var(--text-dim); font-size: 0.62rem; letter-spacing: 0.03em; margin-top: 2px; opacity: 0.5; text-align: center; }
+
+        /* ===== 阶段3：结果 ===== */
+        .result-card {
+            background: var(--surface); border-radius: 18px; padding: 28px 20px; width: 100%;
+            text-align: center; border: 1px solid rgba(224,176,64,0.26);
+            box-shadow: 0 0 50px rgba(224,176,64,0.09), 0 0 90px rgba(255,56,120,0.035);
+            position: relative; overflow: hidden;
+            animation: resultAppear 0.55s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes resultAppear {
+            0%{ opacity:0; transform: translateY(35px) scale(0.8); }
+            100%{ opacity:1; transform: translateY(0) scale(1); }
+        }
+        .result-card::before {
+            content:''; position: absolute; top:0; left:0; right:0; height:3px;
+            background: linear-gradient(90deg, transparent, var(--gold), var(--cyan), var(--gold), transparent);
+            border-radius: 3px 3px 0 0;
+        }
+        .result-sign-id { font-size: 2.6rem; font-weight: 900; letter-spacing: 0.1em; color:#fff; margin-bottom:2px; text-shadow:0 0 26px rgba(255,255,255,0.3); }
+        .result-sign-level { display:inline-block; font-size:1.25rem; font-weight:700; letter-spacing:0.1em; padding:5px 18px; border-radius:16px; margin-bottom:16px; text-shadow:0 0 10px currentColor; }
+        .level-上上{ background:rgba(255,170,18,0.16); color:#ffd700; border:1px solid rgba(255,190,45,0.5); box-shadow:0 0 20px rgba(255,170,18,0.28); }
+        .level-上吉{ background:rgba(255,95,75,0.16); color:#ff6b6b; border:1px solid rgba(255,115,95,0.5); box-shadow:0 0 20px rgba(255,95,75,0.28); }
+        .level-中吉{ background:rgba(255,150,55,0.16); color:#ff9f43; border:1px solid rgba(255,160,75,0.5); box-shadow:0 0 20px rgba(255,150,55,0.28); }
+        .level-中平{ background:rgba(85,160,210,0.16); color:#5dade2; border:1px solid rgba(95,170,220,0.5); box-shadow:0 0 20px rgba(85,160,210,0.22); }
+        .level-下下{ background:rgba(145,145,155,0.16); color:#9e9eae; border:1px solid rgba(155,155,165,0.5); box-shadow:0 0 16px rgba(140,140,150,0.18); }
+        .result-poem { font-size:1rem; line-height:1.9; color:var(--text); letter-spacing:0.05em; padding:14px 16px; background:rgba(255,255,255,0.016); border-radius:10px; border:1px solid rgba(255,255,255,0.045); margin-bottom:6px; text-align:center; }
+        .result-wish { color:var(--text-dim); font-size:0.76rem; margin-bottom:14px; letter-spacing:0.04em; line-height:1.5; }
+        .result-wish strong { color:var(--gold-glow); font-weight:500; }
+        .btn-restart { display:inline-block; padding:10px 24px; background:transparent; border:1px solid rgba(255,255,255,0.2); border-radius:22px; color:var(--text); font-size:0.88rem; letter-spacing:0.05em; cursor:pointer; font-family:inherit; transition:all 0.3s; margin-top:14px; }
+        .btn-restart:hover { border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 18px rgba(0,220,255,0.2); }
+
+        @media (max-width: 400px) {
+            .title-main { font-size:1.6rem; }
+            .input-card { padding:22px 15px 20px; border-radius:14px; }
+            .btn-primary { padding:12px 16px; font-size:0.92rem; }
+            .result-sign-id { font-size:1.9rem; }
+            .result-poem { font-size:0.82rem; padding:10px 11px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="particles-container" id="particlesContainer"></div>
+    <div class="scanlines"></div>
+
+    <div class="app-container" id="appContainer">
+        <!-- 阶段1：输入 -->
+        <div class="stage" id="stageInput">
+            <div class="input-card">
+                <div class="card-inner">
+                    <div class="title-main">赛博求签</div>
+                    <div class="title-sub">✦ 六十甲子 · 心有所惑 签有所解 ✦</div>
+
+                    <!-- 步骤切换按钮 -->
+                    <button class="steps-toggle-btn" id="stepsToggleBtn">
+                        <span>📖 查看求签步骤</span>
+                        <span class="arrow-icon">▾</span>
+                    </button>
+
+                    <!-- 可折叠步骤面板 -->
+                    <div class="steps-panel" id="stepsPanel">
+                        <div class="steps-row">
+                            <div class="step-item"><div class="step-num">①</div><div class="step-label">静心默念</div></div>
+                            <div class="step-divider"></div>
+                            <div class="step-item"><div class="step-num">②</div><div class="step-label">净手洁身</div></div>
+                            <div class="step-divider"></div>
+                            <div class="step-item"><div class="step-num">③</div><div class="step-label">诚心拜叩</div></div>
+                            <div class="step-divider"></div>
+                            <div class="step-item"><div class="step-num">④</div><div class="step-label">摇签抽取</div></div>
+                            <div class="step-divider"></div>
+                            <div class="step-item"><div class="step-num">⑤</div><div class="step-label">查看签文</div></div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>👤 我</label>
+                        <input type="text" id="inputName" placeholder="你的名字" maxlength="16" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label>💭 所求之事</label>
+                        <input type="text" id="inputWish" placeholder="例如：婚姻、事业、运程等" maxlength="28" autocomplete="off">
+                    </div>
+                    <button class="btn-primary" id="btnStart">🙏 诚心求签解惑</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 阶段2：求签 -->
+        <div class="stage hidden" id="stageShake">
+            <div class="shake-area">
+                <div class="wish-reminder" id="wishReminder"></div>
+                <div class="cylinder-wrapper" id="cylinderWrapper">
+                    <div class="sticks-container" id="sticksContainer"></div>
+                    <div class="cylinder-mouth"></div>
+                    <div class="cylinder" id="cylinder"></div>
+                </div>
+                <button class="btn-shake" id="btnShake">🥢 摇晃签筒</button>
+                <div class="shake-hint" id="shakeHint">点击按钮摇晃签筒，或摇动手机</div>
+                <div class="time-tip">🕐 建议午时（11-13点）或子时（23-1点）求签</div>
+            </div>
+        </div>
+
+        <!-- 阶段3：结果 -->
+        <div class="stage hidden" id="stageResult">
+            <div class="result-card" id="resultCard"></div>
+            <button class="btn-restart" id="btnRestart">🔄 再求一签</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const allSigns = [
+                { id: '甲子', level: '上上', poem: '天开地辟结良缘，日吉时良万物全。若得此签非小可，人行忠正帝王宣。' },
+                { id: '乙丑', level: '下下', poem: '心中无事万事休，所求难望有营谋。杨柳叶败芭蕉落，去尽风波去尽愁。' },
+                { id: '丙寅', level: '中平', poem: '一纸官书火急催，扁舟速下浪如雷。顺风舟楫开心允，顷刻千里慰渴怀。' },
+                { id: '丁卯', level: '中吉', poem: '鱼在深潭燕在梁，枉然劳力也无妨。不如静处持真守，只待时来自有光。' },
+                { id: '戊辰', level: '上吉', poem: '鱼化龙时定有期，劝君不用苦劳思。春风只在园花上，一夜风吹满地枝。' },
+                { id: '己巳', level: '中平', poem: '浮生扰扰梦中身，富贵贫穷莫认真。得失荣枯总是幻，北邙多少冢中人。' },
+                { id: '庚午', level: '中吉', poem: '笑谈樽酒喜相逢，家道兴隆福禄重。若问婚姻并财帛，自然和合见笑容。' },
+                { id: '辛未', level: '下下', poem: '石藏无价玉和珍，只管他乡外客身。衣食艰难何足数，此生空手入红尘。' },
+                { id: '壬申', level: '上吉', poem: '莺宿林中得意时，一声啼过万花飞。高才未遇青云路，且进加餐慰所思。' },
+                { id: '癸酉', level: '中平', poem: '静处安身可免灾，劝君不必走高台。争如静坐家堂里，明月清风不用买。' },
+                { id: '甲戌', level: '上上', poem: '龙腾虎跃出山林，一展英雄壮志襟。万里鹏程从此始，丹霄有路接天心。' },
+                { id: '乙亥', level: '下下', poem: '满林花谢正飘零，燕语莺啼总不停。病遇良医身复健，讼求官府事分明。' },
+                { id: '丙子', level: '中平', poem: '时临否极泰当来，玉蕴石中贵自知。若待问求谋望事，只如骑马着鞭迟。' },
+                { id: '丁丑', level: '上吉', poem: '一朝雷雨振山岗，万汇昭苏万物昌。龙虎风云相际会，巍巍事业正当阳。' },
+                { id: '戊寅', level: '中吉', poem: '鸿鹄冲天志力高，羽翼成就上九霄。功名自有高人荐，玉殿传宣姓名标。' },
+                { id: '己卯', level: '中平', poem: '茫茫天数此中求，世事兴亡不自由。万里滔滔江水去，前途自有古人谋。' },
+                { id: '庚辰', level: '上上', poem: '一秋桂子月中开，人向天门踏玉阶。万里鹏程从此始，青云直上接三台。' },
+                { id: '辛巳', level: '下下', poem: '渔翁今夜喜相逢，钓得金钱满船红。莫道世间无好景，此身常在水晶宫。' },
+                { id: '壬午', level: '中吉', poem: '两情相悦两相宜，如鱼得水乐可知。婚姻自此谐和久，福禄绵绵永不衰。' },
+                { id: '癸未', level: '中平', poem: '一纸官书到日边，此身如在浪中船。若能修省加忠信，管许前程福禄全。' },
+                { id: '甲申', level: '上上', poem: '飞腾自有龙虎助，万里风云一举成。玉殿传宣金榜上，姓名高挂锦衣荣。' },
+                { id: '乙酉', level: '下下', poem: '风雨潇潇江上村，渔人无处可开门。不如守旧安身命，免使劳心更断魂。' },
+                { id: '丙戌', level: '中平', poem: '恩人相见笑盈盈，今日相逢喜气生。凡事营谋皆遂意，家门和合永安宁。' },
+                { id: '丁亥', level: '上吉', poem: '一片冰心对月明，两行清泪为功名。丈夫有志当如此，不负人间走一程。' },
+                { id: '戊子', level: '中吉', poem: '花有清香月有阴，此时风景正清吟。莫言春色无人赏，自有知音共此心。' },
+                { id: '己丑', level: '中平', poem: '门前喜鹊噪晨昏，知是佳音入大门。万里鹏程从此始，玉堂金马任飞腾。' },
+                { id: '庚寅', level: '上上', poem: '飞腾自是有机缘，一举成名四海传。玉殿传宣金榜挂，高官厚禄永绵绵。' },
+                { id: '辛卯', level: '下下', poem: '石中韫玉少人知，拂拭终须遇贵人。若问前程何所望，只宜守旧待时来。' },
+                { id: '壬辰', level: '中吉', poem: '一叶扁舟浪里行，主人稳坐且徐行。若能修省加忠信，管许前程福禄亨。' },
+                { id: '癸巳', level: '中平', poem: '风波险处少人行，只恐中间有变更。劝君止泊安身地，若不求安事不宁。' },
+                { id: '甲午', level: '上上', poem: '马前一箭破天关，万里征人唱凯还。金榜题名当此日，功成名就列朝班。' },
+                { id: '乙未', level: '下下', poem: '春风得意马蹄疾，一日看尽长安花。莫道前程无好景，只因未到转关时。' },
+                { id: '丙申', level: '中平', poem: '一事长如百事忧，求谋未遂意难休。不如静处加修省，自有高人肯见收。' },
+                { id: '丁酉', level: '上吉', poem: '一池春水绿如苔，柳绿花红映碧台。若得此签非小可，贵人接引上云梯。' },
+                { id: '戊戌', level: '中吉', poem: '两人和合见欢情，创业如同春梦成。但看龙蛇相会处，利名俱遂乐升平。' },
+                { id: '己亥', level: '中平', poem: '一池春水绕花身，花影参差对玉人。若问前程何所望，只宜守旧待时新。' },
+                { id: '庚子', level: '上上', poem: '一轮明月桂飘香，时至中秋景色良。桂子月中生贵子，龙门三级姓名香。' },
+                { id: '辛丑', level: '下下', poem: '月照天书静处期，可防阴小却无亏。若逢牛鼠林中会，管许忧中好事随。' },
+                { id: '壬寅', level: '中吉', poem: '一箭穿云喜气新，分明中第早荣身。功名自有高人荐，玉殿传宣宠命新。' },
+                { id: '癸卯', level: '中平', poem: '一池春水碧如天，杨柳阴中荡小船。若问前程何所望，只宜守旧待时迁。' },
+                { id: '甲辰', level: '上上', poem: '龙虎相交日月明，风云际会此时生。一朝得遂凌云志，万里鹏程任尔行。' },
+                { id: '乙巳', level: '下下', poem: '风雨潇潇江上村，渔人无处可开门。不如守旧安身命，免使劳心更断魂。' },
+                { id: '丙午', level: '中平', poem: '一事长如百事忧，求谋未遂意难休。不如静处加修省，自有高人肯见收。' },
+                { id: '丁未', level: '上吉', poem: '一片冰心对月明，两行清泪为功名。丈夫有志当如此，不负人间走一程。' },
+                { id: '戊申', level: '中吉', poem: '花有清香月有阴，此时风景正清吟。莫言春色无人赏，自有知音共此心。' },
+                { id: '己酉', level: '中平', poem: '门前喜鹊噪晨昏，知是佳音入大门。万里鹏程从此始，玉堂金马任飞腾。' },
+                { id: '庚戌', level: '上上', poem: '飞腾自是有机缘，一举成名四海传。玉殿传宣金榜挂，高官厚禄永绵绵。' },
+                { id: '辛亥', level: '下下', poem: '石中韫玉少人知，拂拭终须遇贵人。若问前程何所望，只宜守旧待时来。' },
+                { id: '壬子', level: '中吉', poem: '一叶扁舟浪里行，主人稳坐且徐行。若能修省加忠信，管许前程福禄亨。' },
+                { id: '癸丑', level: '中平', poem: '风波险处少人行，只恐中间有变更。劝君止泊安身地，若不求安事不宁。' },
+                { id: '甲寅', level: '上上', poem: '马前一箭破天关，万里征人唱凯还。金榜题名当此日，功成名就列朝班。' },
+                { id: '乙卯', level: '下下', poem: '春风得意马蹄疾，一日看尽长安花。莫道前程无好景，只因未到转关时。' },
+                { id: '丙辰', level: '中平', poem: '一事长如百事忧，求谋未遂意难休。不如静处加修省，自有高人肯见收。' },
+                { id: '丁巳', level: '上吉', poem: '一池春水绿如苔，柳绿花红映碧台。若得此签非小可，贵人接引上云梯。' },
+                { id: '戊午', level: '中吉', poem: '两人和合见欢情，创业如同春梦成。但看龙蛇相会处，利名俱遂乐升平。' },
+                { id: '己未', level: '中平', poem: '一池春水绕花身，花影参差对玉人。若问前程何所望，只宜守旧待时新。' },
+                { id: '庚申', level: '上上', poem: '一轮明月桂飘香，时至中秋景色良。桂子月中生贵子，龙门三级姓名香。' },
+                { id: '辛酉', level: '下下', poem: '月照天书静处期，可防阴小却无亏。若逢牛鼠林中会，管许忧中好事随。' },
+                { id: '壬戌', level: '中吉', poem: '一箭穿云喜气新，分明中第早荣身。功名自有高人荐，玉殿传宣宠命新。' },
+                { id: '癸亥', level: '中平', poem: '一池春水碧如天，杨柳阴中荡小船。若问前程何所望，只宜守旧待时迁。' }
+            ];
+
+            const stageInput = document.getElementById('stageInput');
+            const stageShake = document.getElementById('stageShake');
+            const stageResult = document.getElementById('stageResult');
+            const inputName = document.getElementById('inputName');
+            const inputWish = document.getElementById('inputWish');
+            const btnStart = document.getElementById('btnStart');
+            const wishReminder = document.getElementById('wishReminder');
+            const sticksContainer = document.getElementById('sticksContainer');
+            const cylinder = document.getElementById('cylinder');
+            const cylinderWrapper = document.getElementById('cylinderWrapper');
+            const btnShake = document.getElementById('btnShake');
+            const shakeHint = document.getElementById('shakeHint');
+            const resultCard = document.getElementById('resultCard');
+            const btnRestart = document.getElementById('btnRestart');
+            const stepsToggleBtn = document.getElementById('stepsToggleBtn');
+            const stepsPanel = document.getElementById('stepsPanel');
+
+            let currentName = '';
+            let currentWish = '';
+            let selectedSign = null;
+            let isShaking = false;
+            let isSelectable = false;
+            let shakeTimeout = null;
+            const STICK_COUNT = 12;
+            let stickSeedOffsets = [];
+
+            // 步骤折叠切换
+            let stepsOpen = false;
+            stepsToggleBtn.addEventListener('click', () => {
+                stepsOpen = !stepsOpen;
+                if (stepsOpen) {
+                    stepsPanel.classList.add('open');
+                    stepsToggleBtn.classList.add('expanded');
+                    stepsToggleBtn.querySelector('span:first-child').textContent = '📖 收起求签步骤';
+                } else {
+                    stepsPanel.classList.remove('open');
+                    stepsToggleBtn.classList.remove('expanded');
+                    stepsToggleBtn.querySelector('span:first-child').textContent = '📖 查看求签步骤';
+                }
+            });
+
+            function createParticles() {
+                const container = document.getElementById('particlesContainer');
+                const colors = ['#ffd700','#ff6b6b','#00dcff','#ff9f43','#ff3878','#5dade2','#e0b040','#ffffff'];
+                for (let i=0; i<20; i++) {
+                    const p = document.createElement('div'); p.classList.add('particle');
+                    const size = Math.random()*3.2+1.1;
+                    p.style.width=size+'px'; p.style.height=size+'px';
+                    p.style.left=Math.random()*100+'%'; p.style.bottom=-(Math.random()*50+10)+'px';
+                    p.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)];
+                    p.style.animationDuration=(Math.random()*10+7)+'s';
+                    p.style.animationDelay=(Math.random()*8)+'s';
+                    p.style.boxShadow='0 0 '+(size*2.5)+'px '+p.style.backgroundColor;
+                    container.appendChild(p);
+                }
+            }
+            createParticles();
+
+            function generateStickOffsets() {
+                stickSeedOffsets = [];
+                for (let i=0; i<STICK_COUNT; i++) stickSeedOffsets.push(Math.round((Math.random()*7-2.5)*10)/10);
+            }
+            function createSticks() {
+                sticksContainer.innerHTML = '';
+                generateStickOffsets();
+                for (let i=0; i<STICK_COUNT; i++) {
+                    const stick = document.createElement('div'); stick.classList.add('stick'); stick.dataset.index=i;
+                    stick.style.transform = `translateY(${stickSeedOffsets[i]}px)`;
+                    stick.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (isSelectable && !isShaking) onStickClicked(this, parseInt(this.dataset.index));
+                    });
+                    sticksContainer.appendChild(stick);
+                }
+            }
+            function resetSticksVisual() {
+                document.querySelectorAll('.stick').forEach((s,i)=>{
+                    s.classList.remove('selectable','flying-out','retreating');
+                    s.style.transform = `translateY(${stickSeedOffsets[i]||0}px)`;
+                    s.style.opacity=''; s.style.pointerEvents=''; s.style.zIndex='';
+                });
+            }
+
+            function showStage(stage) {
+                [stageInput,stageShake,stageResult].forEach(s=>s.classList.add('hidden'));
+                stage.classList.remove('hidden');
+                if (stage===stageShake) {
+                    createSticks(); isSelectable=false; isShaking=false; selectedSign=null;
+                    btnShake.disabled=false; btnShake.textContent='🥢 摇晃签筒';
+                    shakeHint.textContent='点击按钮摇晃签筒，或摇动手机'; shakeHint.classList.remove('glow-hint');
+                    wishReminder.innerHTML='🙏 <strong>'+currentName+'</strong> 所求之事：<strong>'+currentWish+'</strong>';
+                    cylinder.classList.remove('shaking','shaking-hard'); sticksContainer.classList.remove('shaking-sticks');
+                    resetSticksVisual(); requestMotionPermission();
+                }
+                if (stage===stageResult && selectedSign) displayResult();
+            }
+            function displayResult() {
+                if (!selectedSign) return;
+                const sign = selectedSign;
+                resultCard.innerHTML = `
+                    <div class="result-sign-id">🏷 ${sign.id}</div>
+                    <div class="result-sign-level level-${sign.level}">${sign.level}</div>
+                    <div class="result-poem">${sign.poem}</div>
+                    <div class="result-wish"><strong>${currentName}</strong> 所求之事：<strong>${currentWish}</strong></div>
+                `;
+                resultCard.style.animation='none'; resultCard.offsetHeight;
+                resultCard.style.animation='resultAppear 0.55s cubic-bezier(0.34,1.56,0.64,1)';
+            }
+
+            btnStart.addEventListener('click', ()=>{
+                const nameVal=inputName.value.trim(), wishVal=inputWish.value.trim();
+                let err=false;
+                if(!nameVal){ inputName.focus(); flashError(inputName); err=true; }
+                if(!wishVal){ if(!err) inputWish.focus(); flashError(inputWish); err=true; }
+                if(err) return;
+                currentName=nameVal; currentWish=wishVal; showStage(stageShake);
+            });
+            function flashError(el){ el.style.borderColor='#ff3878'; el.style.boxShadow='0 0 13px rgba(255,56,120,0.38)'; setTimeout(()=>{ el.style.borderColor='rgba(255,255,255,0.13)'; el.style.boxShadow=''; },650); }
+            inputWish.addEventListener('keydown',e=>{ if(e.key==='Enter') btnStart.click(); });
+            inputName.addEventListener('keydown',e=>{ if(e.key==='Enter') inputWish.focus(); });
+
+            btnShake.addEventListener('click', ()=>{ if(!isShaking) triggerShake(); });
+            cylinderWrapper.addEventListener('click', function(e){ if(isShaking||isSelectable) return; if(e.target.closest('.stick')) return; triggerShake(); });
+
+            function triggerShake() {
+                if(isShaking) return; isShaking=true; isSelectable=false; btnShake.disabled=true;
+                btnShake.textContent='⏳ 摇晃中...'; shakeHint.textContent='摇晃中……'; shakeHint.classList.remove('glow-hint');
+                selectedSign=null; resetSticksVisual();
+                sticksContainer.classList.remove('shaking-sticks'); cylinder.classList.remove('shaking','shaking-hard');
+                let count=0;
+                function doShake() {
+                    if(count>=7) { finishShaking(); return; }
+                    cylinder.classList.remove('shaking','shaking-hard'); sticksContainer.classList.remove('shaking-sticks');
+                    void cylinder.offsetWidth;
+                    if(count<3) cylinder.classList.add('shaking-hard'); else cylinder.classList.add('shaking');
+                    sticksContainer.classList.add('shaking-sticks'); count++;
+                    shakeTimeout=setTimeout(doShake, 125+Math.random()*85);
+                }
+                shakeTimeout=setTimeout(doShake,55);
+            }
+            function finishShaking() {
+                cylinder.classList.remove('shaking','shaking-hard'); sticksContainer.classList.remove('shaking-sticks');
+                isShaking=false; isSelectable=true;
+                selectedSign=allSigns[Math.floor(Math.random()*allSigns.length)];
+                document.querySelectorAll('.stick').forEach((s,i)=>{
+                    s.classList.add('selectable'); s.style.transform=`translateY(${stickSeedOffsets[i]||0}px)`;
+                    s.style.pointerEvents='auto'; s.style.zIndex='';
+                });
+                btnShake.disabled=false; btnShake.textContent='🔄 重新摇晃';
+                shakeHint.textContent='👆 请从签筒中点击一支签'; shakeHint.classList.add('glow-hint');
+            }
+            function onStickClicked(stick, index) {
+                if(!isSelectable||isShaking||!selectedSign) return;
+                isSelectable=false; isShaking=true; btnShake.disabled=true;
+                btnShake.textContent='✨ 抽签中...'; shakeHint.textContent=''; shakeHint.classList.remove('glow-hint');
+                clearTimeout(shakeTimeout);
+                stick.classList.remove('selectable'); stick.classList.add('flying-out'); stick.style.zIndex='20';
+                document.querySelectorAll('.stick').forEach((s,i)=>{
+                    if(i!==index){ s.classList.remove('selectable'); s.classList.add('retreating'); s.style.pointerEvents='none'; }
+                });
+                setTimeout(()=>{ showStage(stageResult); resetSticksVisual(); btnShake.textContent='🥢 摇晃签筒'; btnShake.disabled=false; isShaking=false; isSelectable=false; shakeHint.textContent='点击按钮摇晃签筒，或摇动手机'; shakeHint.classList.remove('glow-hint'); },700);
+            }
+
+            btnRestart.addEventListener('click', ()=>{
+                selectedSign=null; isSelectable=false; isShaking=false; currentName=''; currentWish='';
+                inputName.value=''; inputWish.value=''; showStage(stageInput);
+                btnShake.textContent='🥢 摇晃签筒'; btnShake.disabled=false;
+                shakeHint.textContent='点击按钮摇晃签筒，或摇动手机'; shakeHint.classList.remove('glow-hint');
+                resetSticksVisual(); cylinder.classList.remove('shaking','shaking-hard'); sticksContainer.classList.remove('shaking-sticks');
+            });
+
+            let motionEnabled=false, lastMotionTime=0;
+            function requestMotionPermission() {
+                if(typeof DeviceMotionEvent!=='undefined') {
+                    if(typeof DeviceMotionEvent.requestPermission==='function') {
+                        DeviceMotionEvent.requestPermission().then(state=>{ if(state==='granted') enableMotion(); }).catch(()=>{});
+                    } else enableMotion();
+                }
+            }
+            function enableMotion() { motionEnabled=true; window.addEventListener('devicemotion', handleMotion, {passive:true}); }
+            function handleMotion(e) {
+                if(!motionEnabled||isShaking||stageShake.classList.contains('hidden')||isSelectable) return;
+                const acc=e.accelerationIncludingGravity; if(!acc) return;
+                const mag=Math.sqrt((acc.x||0)**2+(acc.y||0)**2+(acc.z||0)**2);
+                if(mag>18 && Date.now()-lastMotionTime>2000) { lastMotionTime=Date.now(); triggerShake(); }
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if(e.key===' ' && !stageShake.classList.contains('hidden') && !isShaking && !isSelectable) {
+                    e.preventDefault(); triggerShake();
+                }
+            });
+
+            showStage(stageInput); inputName.focus();
+        })();
+    </script>
+</body>
+</html>
